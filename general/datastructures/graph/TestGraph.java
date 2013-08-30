@@ -14,6 +14,16 @@ public class TestGraph{
         System.out.print(v + " ");
       }
     }
+
+    System.out.println();
+
+    IterativeDepthFirstSearch dfs1 = new IterativeDepthFirstSearch(g,9);
+    System.out.println("Iterative Depth First Search: ");
+    for(int v = 0 ; v < g.V() ; v++){
+      if(dfs1.marked(v)){
+        System.out.print(v + " ");
+      }
+    }
     
     System.out.println("");
 

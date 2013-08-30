@@ -19,6 +19,11 @@ public class TestTree{
     btree.postorder();
     btree.iterativepostorder();
     btree.iterativepostorder1();
+
+    btree.deleteMin();
+
+    btree.delete("S");
+
     
   }
 
