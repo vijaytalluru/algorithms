@@ -1,5 +1,4 @@
-package tree;
-
+package tree; 
 import java.util.*;
 
 public class BST<Key extends Comparable<Key>,Value>{
@@ -66,6 +65,15 @@ public class BST<Key extends Comparable<Key>,Value>{
     return min(x.left);
   }
 
+  public Key max(){
+    return max(root).key;
+  }
+
+  private Node max(Node x){
+    if(x == null) return null;
+    if(x.right == null) return x;
+    return max(x.right);
+  }
   public Key floor(Key key){
     Node x = floor(root, key);
     if ( x == null) return null;
@@ -199,11 +207,12 @@ public class BST<Key extends Comparable<Key>,Value>{
 
 
   public void iterativepostorder1(){
-    iterativepostorder(root);
+    iterativepostorder1(root);
     System.out.println();
   }
 
   private void iterativepostorder1(Node x){
+
     Stack<Node> s1 = new Stack<Node>();
     Stack<Node> s2 = new Stack<Node>();
 
@@ -216,16 +225,16 @@ public class BST<Key extends Comparable<Key>,Value>{
       s2.push(cur);
 
       if(cur.left != null){
-        s1.push(cur.right);
+        s1.push(cur.left);
       }
       if(cur.right != null){
-        s1.push(cur.left);
+        s1.push(cur.right);
       }
 
     }
 
     while(!s2.empty()){
-      System.out.print(s2.pop() + " ");
+      System.out.print(s2.pop().key + " ");
     }
 
   }
@@ -284,13 +293,190 @@ public class BST<Key extends Comparable<Key>,Value>{
       System.out.println("x: " + x.key);
       Node t = x; 
       x = min(t.right);
-      x.left = t.left;
-      System.out.println("x.left: " + x.left.key);
+      /* Changing the order of the next two assignments 
+      will give an interesting bug. For the deleteMin to work
+      correctly on t.right, we don't want x.left to be updated 
+      to t.left before calling deleteMin */
       x.right = deleteMin(t.right);
-      System.out.println("x.right: " + x.right.key);
+      x.left = t.left;
     }
     x.N = size(x.left) + size(x.right) + 1;
     return x;
   }
+
+  public Iterable<Key> Keys(){
+    return keys(min(), max());
+  }
+
+  public Iterable<Key> keys(Key lo , Key hi){
+    ArrayDeque<Key> queue = new ArrayDeque<Key>();
+    keys(root, queue, lo, hi);
+    return queue;
+  }
+
+  private void keys(Node x, ArrayDeque<Key> q, Key lo, Key hi){
+    if(x == null) return;
+    int cmplo = lo.compareTo(x.key);
+    int cmphi = hi.compareTo(x.key);
+
+    if(cmplo < 0) keys(x.left, q, lo, hi);
+    if(cmplo <= 0 && cmphi >= 0) q.add(x.key);
+    if(cmphi > 0 ) keys(x.right, q,lo, hi); 
+  }
+  
+  /* Get all the first elements in each level */
+  private class LevelInfo{
+    private int max_level;
+    public LevelInfo( int max_level){
+      this.max_level = max_level;
+    }
+  }
+
+  public Iterable<Key> leftview( ){
+    LevelInfo levelinfo = new LevelInfo(0);;  
+    ArrayDeque<Key> leftnodes =  new ArrayDeque<Key>();
+    leftview(leftnodes,levelinfo,1,root);
+    return leftnodes;
+  }
+  public Iterable<Key> leftviewiterative( ){
+    ArrayDeque<Key> leftnodes = new ArrayDeque<Key>();
+    leftviewiterative(leftnodes,root);
+    return leftnodes;
+  }
+  private void leftview(ArrayDeque<Key> leftnodes, LevelInfo levelInfo,int level, Node x){
+      if(x == null) return;
+      if(level > levelInfo.max_level){
+        leftnodes.add(x.key);
+        levelInfo.max_level = level;
+      }
+        leftview(leftnodes, levelInfo,level + 1, x.left);
+        leftview(leftnodes, levelInfo,level + 1, x.right);
+    } 
+
+    private void leftviewiterative(ArrayDeque<Key> leftnodes,Node x){
+      Stack<Node> s = new Stack<Node>();
+      Stack<Integer> l = new Stack<Integer>();
+
+      int max_level = 0; 
+
+      s.push(x);
+      l.push(1);
+
+      while(!s.empty()){
+        Node cur = s.pop();
+        int currlevel = l.pop();
+        if(currlevel > max_level){
+          leftnodes.add(cur.key);
+          max_level = currlevel;
+        }
+
+        if(cur.right != null){
+          s.push(cur.right);
+          l.push(currlevel + 1);
+        }
+        if(cur.left != null){
+          s.push(cur.left);
+          l.push(currlevel + 1);
+        }
+
+      }
+      
+    }
+  
+
+
+  public Iterable<Key> levelorder(){
+    ArrayDeque<Key> q = new ArrayDeque<Key>();
+    return levelorder(q,root);
+  }
+
+  private Iterable<Key> levelorder(ArrayDeque<Key> q, Node x){
+    ArrayDeque<Node> t = new ArrayDeque<Node>();
+
+    t.add(x);
+
+    while( !t.isEmpty()){
+      Node cur = t.remove();
+      q.add(cur.key);
+      
+      if(cur.left != null){
+        t.add(cur.left); 
+      }
+      if(cur.right != null){
+        t.add(cur.right);
+      }
+      
+    }
+    return q;
+  }
+
+  /* this prints the levels from left to right, but starts printing from the
+  bottom most level */
+
+  public Iterable<Key> reverselevelorder(){
+    return reverselevelorder(root);
+  }
+
+
+  private Iterable<Key> reverselevelorder(Node x){
+    ArrayDeque<Node> t = new ArrayDeque<Node>();
+    ArrayDeque<Integer> i1 = new ArrayDeque<Integer>();
+    ArrayDeque<Integer> i = new ArrayDeque<Integer>();
+    ArrayDeque<Key> q = new ArrayDeque<Key>();
+
+    t.add(x);
+    i.add(0);
+    
+
+    while( !t.isEmpty()){
+      Node cur = t.remove();
+      int level = i.remove();
+
+      q.add(cur.key);
+      i1.add(level);
+      
+      if(cur.left != null){
+        t.add(cur.left); 
+        i.add(level+1);
+      }
+      if(cur.right != null){
+        t.add(cur.right);
+        i.add(level+1);
+      }
+      
+    }
+
+    Integer  []ia = i1.toArray(new Integer[0]);
+    ArrayList<Key> na = new ArrayList<Key>(); 
+    
+    for( Key k : q){
+      na.add(k);
+    }
+
+    Stack<Key> result = new Stack<Key>();
+    Stack<Key> temp   = new Stack<Key>();
+    
+    
+    for(int j = 0 ; j < ia.length ; j++ ){
+      temp.push(na.get(j));
+      while( j+1 < ia.length && (ia[j]== ia[j+1])){
+       temp.push(na.get(j+1));        
+       j++; 
+      }
+      while( !temp.empty()){
+        result.push(temp.pop());
+      }
+      temp.clear();
+    }
+
+    ArrayDeque<Key> fresult = new ArrayDeque<Key>();
+    while( !result.empty()){
+      fresult.add(result.pop());
+    }
+
+    return fresult; 
+  }
+
+ 
 
 }
