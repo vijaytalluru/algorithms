@@ -1,3 +1,5 @@
+/* SRM 325 DIV II level 2 problem */
+/* http://community.topcoder.com/stat?c=problem_statement&pm=6680 */
 
 public class RGBStreet{
   public static int estimateCost(String[] houses){
